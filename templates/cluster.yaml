@@ -1,0 +1,31 @@
+{{- if .Values.kafka.enabled -}}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: {{ template "kafka.baseName" . }}
+  labels:
+    {{- include "common.labels" . | trim | nindent 4 }}
+spec:
+  kafka:
+    version: {{ .Values.kafka.clusters.kafka.version }}
+    replicas: {{ .Values.kafka.clusters.kafka.replicas }}
+    listeners:
+    {{- toYaml .Values.kafka.clusters.kafka.listeners | trim | nindent 4 }}
+    storage:
+      type: {{ .Values.kafka.clusters.kafka.storage.type }}
+      volumes:
+      {{- toYaml .Values.kafka.clusters.kafka.storage.volumes | trim | nindent 8 }}
+    config:
+      {{- toYaml .Values.kafka.clusters.kafka.config | trim | nindent 6 }}
+  zookeeper:
+    replicas: {{ .Values.kafka.clusters.zookeeper.replicas }}
+    storage:
+      type: {{ .Values.kafka.clusters.zookeeper.storage.type }}
+      size: {{ .Values.kafka.clusters.zookeeper.storage.size }}
+      deleteClaim: {{ .Values.kafka.clusters.zookeeper.storage.deleteClaim }}
+  entityOperator:
+    topicOperator:
+      {{- toYaml .Values.kafka.clusters.topicOperator | trim | nindent 6 }}
+    userOperator:
+      {{- toYaml .Values.kafka.clusters.userOperator | trim | nindent 6 }}
+{{ end -}}

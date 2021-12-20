@@ -1,0 +1,15 @@
+apiVersion: v2
+name: kafka-demo
+description: Helm chart to deploy Apache Kafka demo application
+version: 1.0.0
+dependencies:
+- name: strimzi-kafka-operator
+  alias: kafka
+  version: 0.26.1
+  repository: "https://strimzi.io/charts/"
+  condition: kafka.enabled
+- name: cmak-operator
+  alias: cmak
+  version: 1.8.0
+  repository: "https://eshepelyuk.github.io/cmak-operator"
+  condition: cmak.enabled

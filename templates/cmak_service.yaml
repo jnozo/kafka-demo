@@ -1,0 +1,14 @@
+{{- if and .Values.cmak.enabled .Values.cmak.externalService.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: cmak-external
+  labels:
+    {{- include "common.labels" . | trim | nindent 4 }}
+spec:
+  type: LoadBalancer
+  selector:
+    {{- include "cmak.selectorLabels" . | trim | nindent 4 }}
+  ports:
+  {{- toYaml .Values.cmak.externalService.ports | trim | nindent 2 }}
+{{ end -}}

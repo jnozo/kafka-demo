@@ -1,0 +1,109 @@
+kafka:
+  enabled: true
+  
+  clusters:
+    kafka:
+      # Anything beyond 2.8.0 may not work due to CMAK appearing to be a dead
+      # project. Latest version officially supported by CMAK is 2.4.0.
+      version: 2.8.0
+      replicas: 3
+      storage: 
+        type: jbod
+        volumes:
+        - id: 0
+          type: persistent-claim
+          size: 10Gi
+          deleteClaim: true
+
+      listeners:
+      - name: internal
+        port: 9095
+        type: ingress
+        tls: true
+        configuration:
+          # ingressClass
+          class: internal
+          bootstrap:
+            host: kafka-demo-bootstrap.mydomain.com
+          brokers:
+          - broker: 0
+            host: kafka-demo-broker-0.mydomain.com
+          - broker: 1
+            host: kafka-demo-broker-1.mydomain.com
+          - broker: 2
+            host: kafka-demo-broker-2.mydomain.com
+
+      config:
+        offsets.topic.replication.factor: 1
+        transaction.state.log.replication.factor: 1
+        transaction.state.log.min.isr: 1
+        default.replication.factor: 1
+        min.insync.replicas: 1
+
+    topicOperator: {}
+    userOperator: {}
+
+    zookeeper:
+      replicas: 1
+      storage:
+        type: persistent-claim
+        size: 10Gi
+        deleteClaim: true
+    
+  # This is a workaround to allow CMAK access to the Strimzi-deployed Zookeeper.
+  # This should be be used in a production environment.
+  zooEntrance:
+    enabled: true
+
+  # Define Kafka topics here.
+  # Note: Names with underscores are not supported by the Strimzi operator due
+  #       to K8s objects not being able to have underscores in their names. To
+  #       work around this, the 'topicName' field should be used for the actual
+  #       topic name.
+  topics:
+  - name: upstream
+    topicName: upstream
+    cluster: kafka-demo
+    partitions: 3
+    replicas: 1
+  - name: upstream-be
+    topicName: upstream_be
+    cluster: kafka-demo
+    partitions: 3
+    replicas: 1
+  - name: upstream-st
+    topicName: upstream_st
+    cluster: kafka-demo
+    partitions: 3
+    replicas: 1
+
+# Kafka Manager
+cmak:
+  enabled: true
+
+  # Application settings.
+  cmak:
+    clusters:
+      - name: kafka-demo
+        kafkaVersion: 2.4.0
+        curatorConfig:
+          zkConnect: "zoo-entrance:2181"
+    
+  ui:
+    extraArgs:
+    # Enables HTTPS.
+    # Port must match the 'https' port entry under cmak.externalService.ports.
+    - "-Dhttps.port=9443"
+
+  # Enable to allow access to CMAK from the internet using a LoadBalancer-type service.
+  externalService:
+    enabled: true
+    ports:
+    - name: http
+      port: 80
+      targetPort: 9000
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 9443
+      protocol: TCP
