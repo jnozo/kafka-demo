@@ -32,6 +32,7 @@ After making the appropriate configuration updates, run the commands below:
 
 ```
 # Install
+helm dep update
 helm install --create-namespace -n kafka-demo my-release-name .
 
 # Uninstall
